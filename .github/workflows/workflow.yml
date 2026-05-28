@@ -1,0 +1,44 @@
+name: "🚀 Lancement Bot Discord Pixelot Cup"
+
+# Déclenchement uniquement via le bouton sur GitHub
+on:
+  workflow_dispatch:
+
+jobs:
+  verify-bot:
+    runs-on: ubuntu-latest
+    
+    # Sécurité timeout : 10 minutes max si ça bloque
+    timeout-minutes: 10
+
+    steps:
+    # 1. Récupère ton code sur la machine virtuelle
+    - name: Checkout du code
+      uses: actions/checkout@v4
+
+    # 2. Installe Python
+    - name: Configuration de Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 3. Cache pour accélérer les futurs lancements du bouton
+    - name: Cache des modules Python
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    # 4. Installe les packages listés dans ton requirements.txt
+    - name: Installation des dépendances
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # 5. Check si le code de main.py n'a pas d'erreur de syntaxe
+    - name: Vérification de la syntaxe (Linting)
+      run: |
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
