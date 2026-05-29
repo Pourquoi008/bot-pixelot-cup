@@ -11,6 +11,11 @@ jobs:
     # Sécurité timeout : 10 minutes max si ça bloque
     timeout-minutes: 10
 
+    # 🔐 ICI : On va chercher le token caché dans le coffre-fort de GitHub
+    # et on le transforme en variable d'environnement pour ton code
+    env:
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+
     steps:
     # 1. Récupère ton code sur la machine virtuelle
     - name: Checkout du code
@@ -42,3 +47,8 @@ jobs:
       run: |
         pip install flake8
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # 🚀 6. LE VRAI LANCEMENT : Maintenant que l'environnement a le token, on lance le bot !
+    - name: Lancement réel du Bot
+      run: |
+        python main.py
