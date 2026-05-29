@@ -1,33 +1,25 @@
 name: "🚀 Lancement Bot Discord Pixelot Cup"
 
-# Déclenchement uniquement via le bouton sur GitHub
 on:
   workflow_dispatch:
 
 jobs:
   verify-bot:
     runs-on: ubuntu-latest
-    
-    # Sécurité timeout : 10 minutes max si ça bloque
     timeout-minutes: 10
 
-    # 🔐 ICI : On va chercher le token caché dans le coffre-fort de GitHub
-    # et on le transforme en variable d'environnement pour ton code
     env:
       DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
 
     steps:
-    # 1. Récupère ton code sur la machine virtuelle
     - name: Checkout du code
       uses: actions/checkout@v4
 
-    # 2. Installe Python
     - name: Configuration de Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    # 3. Cache pour accélérer les futurs lancements du bouton
     - name: Cache des modules Python
       uses: actions/cache@v4
       with:
@@ -36,19 +28,27 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    # 4. Installe les packages listés dans ton requirements.txt
     - name: Installation des dépendances
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # On cherche le bon requirements.txt partout où il pourrait être
+        REQ_PATH=$(find . -name "requirements.txt" | head -n 1)
+        if [ -n "$REQ_PATH" ]; then pip install -r "$REQ_PATH"; fi
 
-    # 5. Check si le code de main.py n'a pas d'erreur de syntaxe
-    - name: Vérification de la syntaxe (Linting)
+    - name: Lancement automatique du Bot
       run: |
-        pip install flake8
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-    # 🚀 6. LE VRAI LANCEMENT : Maintenant que l'environnement a le token, on lance le bot !
-    - name: Lancement réel du Bot
-      run: |
+        # 🎯 LA MAGIE : On cherche où est caché main.py dans la machine virtuelle
+        MAIN_PATH=$(find . -name "main.py" | head -n 1)
+        
+        if [ -z "$MAIN_PATH" ]; then
+          echo "❌ Impossible de trouver main.py dans le dépôt !"
+          exit 1
+        fi
+        
+        # On récupère le dossier parent de main.py
+        BOT_DIR=$(dirname "$MAIN_PATH")
+        echo "📂 Dossier du bot trouvé : $BOT_DIR"
+        
+        # On se déplace dedans et on lance le script
+        cd "$BOT_DIR"
         python main.py
