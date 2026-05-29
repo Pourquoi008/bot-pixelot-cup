@@ -24,7 +24,7 @@ class Bienvenue(commands.Cog):
         embed = discord.Embed(
             title=f"🎮 Bienvenue dans la Pixelot Cup, {member.name} !",
             description=(
-                f"\n📌 Rendez-vous dans le salon <#{self.INSCRIPTION_CHANNEL_ID}> pour t'inscrire ! \n"
+                f"\n\n\n\n📌 Rendez-vous dans le salon <#{self.INSCRIPTION_CHANNEL_ID}> pour t'inscrire ! \n\n\n\n\u200b"
             ),
             color=discord.Color.gold()
         )
@@ -37,7 +37,7 @@ class Bienvenue(commands.Cog):
         )
         
         embed.add_field(
-            name="", 
+            name="\u200b", 
             value="• Tetris.io 🧩\n• Puck 🏒\n• Oh Baby Kart 🏎️\n• A few quick matches ⚔️", 
             inline=True
         )
