@@ -31,13 +31,13 @@ class Bienvenue(commands.Cog):
 
         # 🕹️ Liste des Jeux de l'affiche (séparés en deux colonnes propres)
         embed.add_field(
-            name="⚔️ Les Jeux", 
+            name="🕹️ Les Jeux", 
             value="• Valorant 🎯\n• Brawl Stars 💥\n• Smite 2 ⚡\n• Legion TD 2 🛡️", 
             inline=True
         )
         
         embed.add_field(
-            name="🕹️ Les Jeux", 
+            name="", 
             value="• Tetris.io 🧩\n• Puck 🏒\n• Oh Baby Kart 🏎️\n• A few quick matches ⚔️", 
             inline=True
         )
