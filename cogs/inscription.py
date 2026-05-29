@@ -1,5 +1,6 @@
 import discord
 import string
+from discord import app_commands 
 
 class InscriptionModal(discord.ui.Modal,title="Inscription"):
     pseudo_smite2 = discord.ui.TextInput(label="Pseudo Smite 2",style=discord.TextStyle.short)
@@ -19,6 +20,10 @@ class InscriptionModal(discord.ui.Modal,title="Inscription"):
             if interaction.channel.name!="『🥇』inscription-ranked":
                 await interaction.response.send_message("⚠️ Vous n'êtes pas dans le salon d'inscription !",ephemeral=True)
                 return
+            # On répond au joueur quand il a cliqué sur Envoyer
+            await interaction.response.send_message(f"✅ Pseudos enregistrés, merci {interaction.user.mention} !", ephemeral=True)
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Une erreur est survenue : {e}", ephemeral=True)
 
 # 2. C'est ICI qu'on crée le bouton qui va lancer le Modal
 class InscriptionView(discord.ui.View):
@@ -32,7 +37,7 @@ class InscriptionView(discord.ui.View):
         
         # 🔒 Ta sécurité pour vérifier le salon (Remplace par l'ID de ton salon !)
         # C'est beaucoup plus sûr que le nom du salon
-        ID_SALON_INSCRIPTION = 123456789012345678  
+        ID_SALON_INSCRIPTION = 1509961077696237778  
         
         if interaction.channel_id != ID_SALON_INSCRIPTION:
             await interaction.response.send_message("⚠️ Vous n'êtes pas dans le salon d'inscription !", ephemeral=True)
@@ -42,31 +47,34 @@ class InscriptionView(discord.ui.View):
         await interaction.response.send_modal(InscriptionModal())
 
 
-# 3. Ton Cog principal
+# ==========================================
+# 3. LE COG PRINCIPAL (COMMANDE SLASH)
+# ==========================================
+
 class Inscription(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Cette commande te permet d'envoyer le bouton dans le salon
-    @commands.command()
-    @commands.has_permissions(administrator=True) # Seuls les admins peuvent lancer la commande
-    async def lancer_panneau(self, ctx):
-        """Tapes !lancer_panneau dans ton salon #inscription pour afficher le bouton"""
+    # 1. On utilise app_commands au lieu de commands
+    @app_commands.command(name="lancer_panneau", description="Affiche le panneau avec les boutons d'inscription")
+    # 2. Seuls les membres avec la permission Administrateur peuvent la voir/lancer
+    @app_commands.default_permissions(administrator=True)
+    async def lancer_panneau(self, interaction: discord.Interaction):
         
-        # On supprime ton message !lancer_panneau pour que le salon reste propre
-        await ctx.message.delete()
+        # On valide l'interaction tout de suite en envoyant un message invisible 
+        # pour confirmer que la commande a été reçue (obligatoire pour les slash commands)
+        await interaction.response.send_message("⌛ Génération du panneau...", ephemeral=True)
 
         embed = discord.Embed(
             title="🏆 Inscriptions à la Pixelot Cup 2026",
             description=(
-                "Prêt à relever le défi et à affronter les autres joueurs ?\n\n"
+                "Prêt à relever le défi ?\n\n"
                 "📌 Cliquez sur le bouton ci-dessous pour remplir vos identifiants de jeu et valider votre participation !"
             ),
             color=discord.Color.gold()
         )
 
-        # On envoie l'embed avec la View qui contient ton bouton
-        await ctx.send(embed=embed, view=InscriptionView())
+        await interaction.channel.send(embed=embed, view=InscriptionView())
 
 async def setup(bot):
     await bot.add_cog(Inscription(bot))
