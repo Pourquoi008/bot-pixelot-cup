@@ -1,5 +1,6 @@
 import discord
 import string
+from discord.ext import commands
 from discord import app_commands 
 
 class InscriptionModal(discord.ui.Modal,title="Inscription"):
@@ -17,9 +18,6 @@ class InscriptionModal(discord.ui.Modal,title="Inscription"):
 
     async def on_submit(self,interaction:discord.Interaction):
         try:
-            if interaction.channel.name!="『🥇』inscription-ranked":
-                await interaction.response.send_message("⚠️ Vous n'êtes pas dans le salon d'inscription !",ephemeral=True)
-                return
             # On répond au joueur quand il a cliqué sur Envoyer
             await interaction.response.send_message(f"✅ Pseudos enregistrés, merci {interaction.user.mention} !", ephemeral=True)
         except Exception as e:
