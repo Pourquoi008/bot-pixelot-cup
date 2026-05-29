@@ -24,16 +24,21 @@ class Bienvenue(commands.Cog):
         embed = discord.Embed(
             title=f"🎮 Bienvenue dans la Pixelot Cup, {member.name} !",
             description=(
-                f"Ravi de t'avoir parmi nous ! Tu as rejoint le serveur officiel de la compétition.\n\n"
-                f"🚀 Direction <#{self.INSCRIPTION_CHANNEL_ID}> pour réserver ton slot !"
+                f"📌 Rendez-vous dans le salon <#{self.INSCRIPTION_CHANNEL_ID}> pour t'inscrire !"
             ),
             color=discord.Color.gold()
         )
 
-        # 📅 Liste des Jeux (inline=True pour les mettre côte à côte si l'écran est assez grand)
+        # 🕹️ Liste des Jeux de l'affiche (séparés en deux colonnes propres)
         embed.add_field(
-            name="🕹️ Les Jeux de la Cup", 
-            value="• Minecraft ⛏️\n• Trackmania 🏎️\n• League of Legends ⚔️", 
+            name="⚔️ Les Jeux", 
+            value="• Valorant 🎯\n• Brawl Stars 💥\n• Smite 2 ⚡\n• Legion TD 2 🛡️", 
+            inline=True
+        )
+        
+        embed.add_field(
+            name="🕹️ Les Jeux", 
+            value="• Tetris.io 🧩\n• Puck 🏒\n• Oh Baby Kart 🏎️\n• A few quick matches ⚔️", 
             inline=True
         )
 
