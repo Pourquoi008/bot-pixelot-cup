@@ -46,7 +46,7 @@ class Bienvenue(commands.Cog):
         embed.set_image(url=member.display_avatar.url)
         
         # Un footer plus pro axé sur l'événement
-        embed.set_footer(text="Pixelot Cup © 2026 • Que le meilleur gagne !")
+        embed.set_footer(text="Pixelot © 2026 • Que le meilleur gagne !")
 
         # Envoi du message
         await channel.send(content=f"Hey {member.mention} est arrivé !", embed=embed)
