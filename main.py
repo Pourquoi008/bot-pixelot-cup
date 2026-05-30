@@ -20,8 +20,6 @@ class Bot(commands.Bot):
                 print(f"✅ Cog '{extension}' chargé.")
             except Exception as e:
                 print(f"❌ Impossible de charger le cog {extension} : {e}")
-        # 2. LA MAGIE DE LA PERSISTANCE : On dit au bot d'écouter le bouton à l'infini
-        self.add_view(InscriptionView())
         print("🔒 Bouton d'inscription enregistré et persistant !")
 
         # 3. La synchro des commandes Slash
@@ -38,6 +36,12 @@ bot = Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
+    try:
+        bot.add_view(InscriptionView())
+        print("🔒 Menu déroulant d'inscription enregistré et 100% persistant !")
+    except Exception as e:
+        print(f"❌ Erreur enregistrement vue persistante : {e}")
+
     print(f"🚀 Connecté et opérationnel en tant que {bot.user}")
 
 # Lancement du serveur de maintien en vie et du bot
