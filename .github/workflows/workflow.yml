@@ -31,24 +31,9 @@ jobs:
     - name: Installation des dépendances
       run: |
         python -m pip install --upgrade pip
-        # On cherche le bon requirements.txt partout où il pourrait être
-        REQ_PATH=$(find . -name "requirements.txt" | head -n 1)
-        if [ -n "$REQ_PATH" ]; then pip install -r "$REQ_PATH"; fi
+        if [ -f "requirements.txt" ]; then pip install -r requirements.txt -q; fi
 
     - name: Lancement automatique du Bot
       run: |
-        # 🎯 LA MAGIE : On cherche où est caché main.py dans la machine virtuelle
-        MAIN_PATH=$(find . -name "main.py" | head -n 1)
-        
-        if [ -z "$MAIN_PATH" ]; then
-          echo "❌ Impossible de trouver main.py dans le dépôt !"
-          exit 1
-        fi
-        
-        # On récupère le dossier parent de main.py
-        BOT_DIR=$(dirname "$MAIN_PATH")
-        echo "📂 Dossier du bot trouvé : $BOT_DIR"
-        
-        # On se déplace dedans et on lance le script
-        cd "$BOT_DIR"
+        # Plus de find, plus de messages de dossiers trouvés, on lance direct !
         python main.py
