@@ -11,19 +11,18 @@ import json
 # ==========================================
 
 def get_sheets_client():
-    # On récupère les identifiants depuis les secrets GitHub ou le fichier local
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     
-    if os.getenv("GOOGLE_CREDS"):
-        # Version pour le déploiement GitHub Actions
-        creds_dict = json.loads(os.getenv("GOOGLE_CREDS"))
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    else:
-        # Version test local si tu as le fichier creds.json sur ton PC
-        creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
+    # 🔐 On récupère le secret injecté par le fichier YML
+    creds_json = os.getenv("GOOGLE_CREDS")
+    if not creds_json:
+        raise ValueError("❌ Erreur : La variable d'environnement GOOGLE_CREDS est introuvable !")
         
+    creds_dict = json.loads(creds_json)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    # Cherche le fichier Google Sheets que tu viens de créer
+    
+    # Cherche le fichier Google Sheets par son nom exact
     return client.open("Inscriptions Pixelot Cup").sheet1
 
 def update_or_insert_player(discord_id, discord_name, column_data):

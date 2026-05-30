@@ -10,6 +10,7 @@ jobs:
 
     env:
       DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+      GOOGLE_CREDS: ${{ secrets.GOOGLE_CREDS }} # 👈 AJOUTE CETTE LIGNE ICI !
 
     steps:
     - name: Checkout du code
