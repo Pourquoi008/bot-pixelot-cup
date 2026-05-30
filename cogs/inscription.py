@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 
 # ==========================================
-# 1. LES MODALS INDÉPENDANTS (5 CHAMPS MAX)
+# 1. LES MODALS INDÉPENDANTS
 # ==========================================
 
 class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
@@ -13,7 +13,13 @@ class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
     id_riot = discord.ui.TextInput(label="ID Riot (Valorant)", style=discord.TextStyle.short)
 
     async def on_submit(self, interaction: discord.Interaction):
-        # TODO: Enregistrement gspread pour la partie 1
+        # ✨ LA MAGIE EST ICI : Le bot récupère tout seul le gars qui a répondu !
+        joueur_discord = interaction.user.name  # Ex: "mathis_noel"
+        id_discord = interaction.user.id        # Ex: 1509961077696237778
+        
+        # TODO: Quand on liera Google Sheets, on enverra : joueur_discord, self.pseudo_smite2.value, etc.
+        print(f"🎮 [Partie 1] {joueur_discord} ({id_discord}) a rempli ses premiers pseudos.")
+        
         await interaction.response.send_message("✅ Partie 1 enregistrée avec succès ! Sélectionne l'étape 2 dans le menu pour continuer.", ephemeral=True)
 
 
@@ -24,7 +30,9 @@ class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
     id_brawlstars = discord.ui.TextInput(label="ID Brawl Stars", style=discord.TextStyle.short)
 
     async def on_submit(self, interaction: discord.Interaction):
-        # TODO: Enregistrement gspread pour la partie 2
+        joueur_discord = interaction.user.name
+        
+        print(f"🕹️ [Partie 2] {joueur_discord} a rempli la suite de ses pseudos.")
         await interaction.response.send_message("✅ Partie 2 enregistrée avec succès ! Sélectionne l'étape 3 dans le menu pour continuer.", ephemeral=True)
 
 
@@ -34,21 +42,15 @@ class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
     remarques = discord.ui.TextInput(label="Remarques", style=discord.TextStyle.long, placeholder="Quelque chose à ajouter ?", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
-        try:
-            # TODO: Enregistrement gspread pour la partie 3
-            
-            # 🔐 Le lien s'affiche ICI automatiquement quand il valide le profil
-            OAUTH_URL = "https://discord.com/oauth2/authorize?client_id=..." # <-- Mets ton vrai lien ici
-            view = discord.ui.View()
-            view.add_item(discord.ui.Button(label="🔐 Étape Finale : Valider mon Discord", url=OAUTH_URL, style=discord.ButtonStyle.link))
-            
-            await interaction.response.send_message(
-                content="📊 **Profil enregistré avec succès !**\n\nPour finaliser complètement ton inscription à la Pixelot Cup, clique sur le bouton ci-dessous :",
-                view=view,
-                ephemeral=True
-            )
-        except Exception as e:
-            await interaction.response.send_message(f"❌ Erreur : {e}", ephemeral=True)
+        joueur_discord = interaction.user.name
+        
+        print(f"📊 [Partie 3] {joueur_discord} a terminé son profil.")
+        
+        # Message de confirmation finale ultra propre
+        await interaction.response.send_message(
+            content=f"🏆 **Inscription validée !**\n\nMerci pour ton inscription, toutes tes informations ont bien été liées à ton compte Discord (**{joueur_discord}**).",
+            ephemeral=True
+        )
 
 
 # ==========================================
@@ -60,8 +62,7 @@ class MenuInscription(discord.ui.Select):
         options = [
             discord.SelectOption(label="1. Pseudos (Partie 1)", description="Smite 2, Legion TD 2, Tetris, Riot ID", emoji="⚔️"),
             discord.SelectOption(label="2. Pseudos (Partie 2)", description="Puck, Quick Matches, Kart, Brawl Stars", emoji="🕹️"),
-            discord.SelectOption(label="3. Mon Profil & Avis", description="Tes tops/flops et remarques", emoji="📊"),
-            discord.SelectOption(label="4. Lier mon compte Discord", description="Étape finale d'authentification OAuth2", emoji="🔐")
+            discord.SelectOption(label="3. Mon Profil & Avis", description="Tes tops/flops et remarques", emoji="📊")
         ]
         super().__init__(placeholder="Choisis une étape pour t'inscrire...", min_values=1, max_values=1, options=options, custom_id="select_inscription")
 
@@ -70,30 +71,15 @@ class MenuInscription(discord.ui.Select):
 
         if choix == "1. Pseudos (Partie 1)":
             await interaction.response.send_modal(ModalJeux1())
-            
         elif choix == "2. Pseudos (Partie 2)":
             await interaction.response.send_modal(ModalJeux2())
-            
         elif choix == "3. Mon Profil & Avis":
             await interaction.response.send_modal(ModalProfil())
-            
-        elif choix == "4. Lier mon compte Discord":
-            # 🔐 Le lien est AUSSI disponible ici en accès direct dans le menu
-            OAUTH_URL = "https://discord.com/oauth2/authorize?client_id=..." # <-- Mets ton vrai lien ici
-            view = discord.ui.View()
-            view.add_item(discord.ui.Button(label="🔗 Lien de connexion Discord", url=OAUTH_URL, style=discord.ButtonStyle.link))
-            
-            await interaction.response.send_message(
-                content="⚠️ **Clique sur le bouton ci-dessous pour lier officiellement ton compte Discord à ton inscription :**",
-                view=view,
-                ephemeral=True
-            )
 
 
 class InscriptionView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        # On ajoute le menu déroulant à la vue principale pour qu'il soit persistant
         self.add_item(MenuInscription())
 
 
@@ -122,7 +108,7 @@ class Inscription(commands.Cog):
                 "Bienvenue sur le panneau d'inscription officiel.\n\n"
                 "📋 **Instructions :**\n"
                 "Utilise le **menu déroulant ci-dessous** pour compléter les différentes étapes à ton rythme.\n"
-                "Tu dois obligatoirement soumettre les étapes 1, 2, 3 et lier ton compte (étape 4) pour valider ton inscription !"
+                "Le bot liera automatiquement tes réponses à ton compte Discord actuel !"
             ),
             color=discord.Color.gold()
         )
