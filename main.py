@@ -4,6 +4,9 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from keep_alive import keep_alive
 
+# 1. IMPORTE TA VUE ICI (Assure-toi que le chemin correspond)
+from cogs.inscription import InscriptionView
+
 # Récupération du token dans un fichier .env
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -17,8 +20,11 @@ class Bot(commands.Bot):
                 print(f"✅ Cog '{extension}' chargé.")
             except Exception as e:
                 print(f"❌ Impossible de charger le cog {extension} : {e}")
+        # 2. LA MAGIE DE LA PERSISTANCE : On dit au bot d'écouter le bouton à l'infini
+        self.add_view(InscriptionView())
+        print("🔒 Bouton d'inscription enregistré et persistant !")
 
-        # 2. La synchro des commandes Slash se fait ICI, une seule fois au démarrage
+        # 3. La synchro des commandes Slash
         print("🔄 Synchronisation des commandes slash...")
         try:
             synced = await self.tree.sync()
