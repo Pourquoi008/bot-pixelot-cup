@@ -6,6 +6,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
 import asyncio
+from datetime import datetime
+import zoneinfo # Pour gérer l'heure française proprement
 
 # ==========================================
 # CONTEXTE & CONNEXION GOOGLE SHEETS
@@ -24,16 +26,25 @@ def get_sheets_client():
 
 def update_or_insert_player(discord_id, discord_name, column_data):
     sheet = get_sheets_client()
+    
+    # 📅 Récupération du timestamp au format : JJ/MM/AAAA HH:MM:SS (Heure de Paris)
+    tz_paris = zoneinfo.ZoneInfo("Europe/Paris")
+    timestamp = datetime.now(tz_paris).strftime("%d/%m/%Y %H:%M:%S")
+
+    # Créer les entêtes si le fichier est tout neuf (avec la colonne Timestamp en premier)
     if not sheet.cell(1, 1).value:
         headers = [
-            "ID Discord", "Pseudo Discord", "Smite 2", "Legion TD 2", 
-            "Tetris.io", "Riot ID", "Puck", "A few quick matches", 
+            "Date d'inscription", "ID Discord", "Pseudo Discord", "Smite 2", 
+            "Legion TD 2", "Tetris.io", "Riot ID", "Puck", "A few quick matches", 
             "Oh Baby Kart", "Brawl Stars", "Meilleur Jeu", "Pire Jeu", "Remarques"
         ]
         sheet.insert_row(headers, 1)
 
-    cell = sheet.find(str(discord_id), in_column=1)
+    # Désormais, l'ID Discord se trouve en colonne B (in_column=2)
+    cell = sheet.find(str(discord_id), in_column=2)
+    
     if cell:
+        # Le joueur existe, on met à jour ses colonnes
         for col_name, value in column_data.items():
             headers = sheet.row_values(1)
             try:
@@ -42,9 +53,13 @@ def update_or_insert_player(discord_id, discord_name, column_data):
             except ValueError:
                 pass
     else:
-        new_row = [str(discord_id), discord_name] + [""] * 11
+        # Nouveau joueur : on crée une nouvelle ligne avec le Timestamp en premier (colonne A)
+        # Suivi de son ID (colonne B) et son Pseudo (colonne C)
+        new_row = [timestamp, str(discord_id), discord_name] + [""] * 11
         sheet.append_row(new_row)
-        cell = sheet.find(str(discord_id), in_column=1)
+        
+        # On recherche la ligne pour ajouter les pseudos spécifiques du formulaire actuel
+        cell = sheet.find(str(discord_id), in_column=2)
         if cell:
             for col_name, value in column_data.items():
                 headers = sheet.row_values(1)
@@ -158,7 +173,6 @@ class InscriptionView(discord.ui.View):
 
     @discord.ui.button(label="S'inscrire 🏆", style=discord.ButtonStyle.green, custom_id="btn_inscription_unique")
     async def bouton_inscription(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # On lance directement la partie 1 !
         await interaction.response.send_modal(ModalJeux1())
 
 # ==========================================
