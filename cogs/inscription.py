@@ -5,6 +5,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
+import asyncio
 
 # ==========================================
 # CONTEXTE & CONNEXION GOOGLE SHEETS
@@ -12,8 +13,6 @@ import json
 
 def get_sheets_client():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    
-    # 🔐 On récupère le secret injecté par le fichier YML
     creds_json = os.getenv("GOOGLE_CREDS")
     if not creds_json:
         raise ValueError("❌ Erreur : La variable d'environnement GOOGLE_CREDS est introuvable !")
@@ -21,15 +20,10 @@ def get_sheets_client():
     creds_dict = json.loads(creds_json)
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    
-    # Cherche le fichier Google Sheets par son nom exact
     return client.open("Inscriptions Pixelot Cup").sheet1
 
 def update_or_insert_player(discord_id, discord_name, column_data):
-    """Cherche un joueur par son ID Discord et met à jour ses données, ou crée une ligne."""
     sheet = get_sheets_client()
-    
-    # Créer les entêtes si le fichier est tout neuf
     if not sheet.cell(1, 1).value:
         headers = [
             "ID Discord", "Pseudo Discord", "Smite 2", "Legion TD 2", 
@@ -38,26 +32,43 @@ def update_or_insert_player(discord_id, discord_name, column_data):
         ]
         sheet.insert_row(headers, 1)
 
-    # Chercher si l'ID du joueur existe déjà (colonne A)
     cell = sheet.find(str(discord_id), in_column=1)
-    
     if cell:
-        # Le joueur existe, on met à jour les colonnes spécifiques fournies
         for col_name, value in column_data.items():
             headers = sheet.row_values(1)
-            col_index = headers.index(col_name) + 1
-            sheet.update_cell(cell.row, col_index, value)
+            try:
+                col_index = headers.index(col_name) + 1
+                sheet.update_cell(cell.row, col_index, value)
+            except ValueError:
+                pass
     else:
-        # Nouveau joueur : on crée une nouvelle ligne avec ses identifiants de base
         new_row = [str(discord_id), discord_name] + [""] * 11
         sheet.append_row(new_row)
-        
-        # On relance la fonction pour remplir les données maintenant que la ligne existe
         cell = sheet.find(str(discord_id), in_column=1)
-        for col_name, value in column_data.items():
-            headers = sheet.row_values(1)
-            col_index = headers.index(col_name) + 1
-            sheet.update_cell(cell.row, col_index, value)
+        if cell:
+            for col_name, value in column_data.items():
+                headers = sheet.row_values(1)
+                try:
+                    col_index = headers.index(col_name) + 1
+                    sheet.update_cell(cell.row, col_index, value)
+                except ValueError:
+                    pass
+
+# ==========================================
+# 1.5 BOUTONS DE TRANSITION RAPIDE (ÉPHÉMÈRES)
+# ==========================================
+
+class ActionEtapeSuivante(discord.ui.View):
+    def __init__(self, prochaine_etape):
+        super().__init__(timeout=60)
+        self.prochaine_etape = prochaine_etape
+
+    @discord.ui.button(label="Continuer l'inscription ➡️", style=discord.ButtonStyle.green)
+    async def bouton_suivant(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.prochaine_etape == 2:
+            await interaction.response.send_modal(ModalJeux2())
+        elif self.prochaine_etape == 3:
+            await interaction.response.send_modal(ModalProfil())
 
 # ==========================================
 # 2. LES MODALS INDÉPENDANTS
@@ -70,6 +81,7 @@ class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
     id_riot = discord.ui.TextInput(label="ID Riot (Valorant)", style=discord.TextStyle.short)
 
     async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         try:
             data = {
                 "Smite 2": self.pseudo_smite2.value,
@@ -77,10 +89,15 @@ class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
                 "Tetris.io": self.pseudo_tetrisio.value,
                 "Riot ID": self.id_riot.value
             }
-            update_or_insert_player(interaction.user.id, interaction.user.name, data)
-            await interaction.response.send_message("✅ Partie 1 enregistrée sur le Google Sheets ! Sélectionne l'étape 2 dans le menu.", ephemeral=True)
+            await asyncio.to_thread(update_or_insert_player, interaction.user.id, interaction.user.name, data)
+            
+            await interaction.followup.send(
+                content="✅ **Partie 1 enregistrée !** Clique ci-dessous pour passer à la suite :", 
+                view=ActionEtapeSuivante(prochaine_etape=2), 
+                ephemeral=True
+            )
         except Exception as e:
-            await interaction.response.send_message(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
 
 
 class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
@@ -90,6 +107,7 @@ class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
     id_brawlstars = discord.ui.TextInput(label="ID Brawl Stars", style=discord.TextStyle.short)
 
     async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         try:
             data = {
                 "Puck": self.pseudo_puck.value,
@@ -97,10 +115,15 @@ class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
                 "Oh Baby Kart": self.pseudo_ohbabykart.value,
                 "Brawl Stars": self.id_brawlstars.value
             }
-            update_or_insert_player(interaction.user.id, interaction.user.name, data)
-            await interaction.response.send_message("✅ Partie 2 enregistrée sur le Google Sheets ! Sélectionne l'étape 3 dans le menu.", ephemeral=True)
+            await asyncio.to_thread(update_or_insert_player, interaction.user.id, interaction.user.name, data)
+            
+            await interaction.followup.send(
+                content="✅ **Partie 2 enregistrée !** Clique ci-dessous pour donner ton profil :", 
+                view=ActionEtapeSuivante(prochaine_etape=3), 
+                ephemeral=True
+            )
         except Exception as e:
-            await interaction.response.send_message(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
 
 
 class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
@@ -109,49 +132,34 @@ class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
     remarques = discord.ui.TextInput(label="Remarques", style=discord.TextStyle.long, placeholder="Quelque chose à ajouter ?", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         try:
             data = {
                 "Meilleur Jeu": self.meilleurs_jeux.value,
                 "Pire Jeu": self.pire_jeux.value,
                 "Remarques": self.remarques.value
             }
-            update_or_insert_player(interaction.user.id, interaction.user.name, data)
+            await asyncio.to_thread(update_or_insert_player, interaction.user.id, interaction.user.name, data)
             
-            await interaction.response.send_message(
-                content=f"🏆 **Inscription validée sur le Sheets !**\n\nMerci, toutes tes informations ont été liées à ton compte Discord (**{interaction.user.name}**).",
+            await interaction.followup.send(
+                content=f"🏆 **Inscription validée !**\n\nMerci, toutes tes informations ont été liées à ton compte Discord (**{interaction.user.name}**).",
                 ephemeral=True
             )
         except Exception as e:
-            await interaction.response.send_message(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
 
 # ==========================================
-# 3. LE MENU DÉROULANT D'INSCRIPTION
+# 3. LE GROS BOUTON UNIQUE ET PERSISTANT
 # ==========================================
-
-class MenuInscription(discord.ui.Select):
-    def __init__(self):
-        options = [
-            discord.SelectOption(label="1. Pseudos (Partie 1)", description="Smite 2, Legion TD 2, Tetris, Riot ID", emoji="⚔️"),
-            discord.SelectOption(label="2. Pseudos (Partie 2)", description="Puck, Quick Matches, Kart, Brawl Stars", emoji="🕹️"),
-            discord.SelectOption(label="3. Mon Profil & Avis", description="Tes tops/flops et remarques", emoji="📊")
-        ]
-        super().__init__(placeholder="Choisis une étape pour t'inscrire...", min_values=1, max_values=1, options=options, custom_id="select_inscription")
-
-    async def callback(self, interaction: discord.Interaction):
-        choix = self.values[0]
-        if choix == "1. Pseudos (Partie 1)":
-            await interaction.response.send_modal(ModalJeux1())
-        elif choix == "2. Pseudos (Partie 2)":
-            await interaction.response.send_modal(ModalJeux2())
-        elif choix == "3. Mon Profil & Avis":
-            await interaction.response.send_modal(ModalProfil())
-
 
 class InscriptionView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        self.add_item(MenuInscription())
 
+    @discord.ui.button(label="S'inscrire 🏆", style=discord.ButtonStyle.green, custom_id="btn_inscription_unique")
+    async def bouton_inscription(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # On lance directement la partie 1 !
+        await interaction.response.send_modal(ModalJeux1())
 
 # ==========================================
 # 4. LE COG PRINCIPAL (COMMANDE SLASH)
@@ -161,7 +169,7 @@ class Inscription(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="lancer_panneau", description="Affiche le panneau d'inscription avec menu déroulant")
+    @app_commands.command(name="lancer_panneau", description="Affiche le panneau avec le bouton unique d'inscription")
     @app_commands.default_permissions(administrator=True)
     async def lancer_panneau(self, interaction: discord.Interaction):
         ID_SALON_INSCRIPTION = 1509961077696237778  
@@ -176,8 +184,8 @@ class Inscription(commands.Cog):
             description=(
                 "Bienvenue sur le panneau d'inscription officiel.\n\n"
                 "📋 **Instructions :**\n"
-                "Utilise le **menu déroulant ci-dessous** pour compléter les différentes étapes à ton rythme.\n"
-                "Le bot liera automatiquement tes réponses à ton compte Discord actuel sur notre tableau de suivi !"
+                "Clique sur le bouton **S'inscrire 🏆** ci-dessous pour lancer le formulaire.\n"
+                "Laisse-toi guider à travers les étapes pour lier tes pseudos à ton compte Discord actuel !"
             ),
             color=discord.Color.gold()
         )
