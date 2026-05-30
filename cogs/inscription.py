@@ -93,7 +93,7 @@ class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
     pseudo_smite2 = discord.ui.TextInput(label="Pseudo Smite 2", style=discord.TextStyle.short)
     pseudo_legiontd2 = discord.ui.TextInput(label="Pseudo Legion TD 2", style=discord.TextStyle.short)
     pseudo_tetrisio = discord.ui.TextInput(label="Pseudo Tetris.io", style=discord.TextStyle.short)
-    id_riot = discord.ui.TextInput(label="ID Riot (Valorant)", style=discord.TextStyle.short)
+    id_riot = discord.ui.TextInput(label="Pseudo Riot (Valorant)", style=discord.TextStyle.short,placeholder="MonPseudo#1234")
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
@@ -119,7 +119,7 @@ class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
     pseudo_puck = discord.ui.TextInput(label="Pseudo Puck", style=discord.TextStyle.short)
     pseudo_afewquickmatches = discord.ui.TextInput(label="Pseudo A few quick matches", style=discord.TextStyle.short)
     pseudo_ohbabykart = discord.ui.TextInput(label="Pseudo Oh Baby Kart", style=discord.TextStyle.short)
-    id_brawlstars = discord.ui.TextInput(label="ID Brawl Stars", style=discord.TextStyle.short)
+    id_brawlstars = discord.ui.TextInput(label="Pseudo Supercell ID (Brawl Stars)", style=discord.TextStyle.short,placeholder="MonPseudo")
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
