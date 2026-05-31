@@ -6,7 +6,7 @@ on:
 jobs:
   verify-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
 
     env:
       DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}

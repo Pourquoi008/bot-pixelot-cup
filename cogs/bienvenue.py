@@ -24,7 +24,7 @@ class Bienvenue(commands.Cog):
         embed = discord.Embed(
             title=f"🎮 Bienvenue dans la Pixelot Cup, {member.name} !",
             description=(
-                f"\n\n\n\n📌 Rendez-vous dans le salon <#{self.INSCRIPTION_CHANNEL_ID}> pour t'inscrire ! \n\n\n\n\u200b"
+                f"\u200b\n\n📌 Rendez-vous dans le salon <#{self.INSCRIPTION_CHANNEL_ID}> pour t'inscrire ! \n\n\u200b"
             ),
             color=discord.Color.gold()
         )
