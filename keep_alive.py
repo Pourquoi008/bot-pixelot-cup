@@ -1,15 +1,21 @@
+from urllib.parse import uses_relative
 from flask import Flask
 from threading import Thread
+import os
 
 app = Flask('')
 
-@app.route('/')
+@app.route('/',methods=['GET','HEAD'])
 def home():
-    return "Bot en ligne !"
+print("───> [PING] Requête de maintien reçue !")
+return "Le bot est en ligne !",200
 
 def run():
-    app.run(host='0.0.0.0', port=8080)
+port=int(os.environ.get("PORT",8080))
+app.run(host='0.0.0.0',port=port,use_reloader=False)
 
 def keep_alive():
-    t = Thread(target=run)
-    t.start()
+print(">>> Démarrage du thread keep_alive")
+t=Thread(target=run,daemon=True)
+t.start() 
+
