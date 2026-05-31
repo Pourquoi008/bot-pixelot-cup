@@ -5,17 +5,16 @@ import os
 
 app = Flask('')
 
-@app.route('/',methods=['GET','HEAD'])
+@app.route('/', methods=['GET', 'HEAD'])
 def home():
-print("───> [PING] Requête de maintien reçue !")
-return "Le bot est en ligne !",200
+    print("───> [PING] Requête de maintien reçue !")
+    return "Le bot est en ligne !", 200
 
 def run():
-port=int(os.environ.get("PORT",8080))
-app.run(host='0.0.0.0',port=port,use_reloader=False)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port, use_reloader=False)
 
 def keep_alive():
-print(">>> Démarrage du thread keep_alive")
-t=Thread(target=run,daemon=True)
-t.start() 
-
+    print(">>> Démarrage du thread keep_alive")
+    t = Thread(target=run, daemon=True)
+    t.start()
