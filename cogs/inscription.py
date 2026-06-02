@@ -101,29 +101,25 @@ def update_or_insert_player(discord_id, discord_name, column_data):
 # ==========================================
 
 class ActionEtapeSuivante(discord.ui.View):
-    def __init__(self, prochaine_etape, bot):
+    def __init__(self, prochaine_etape):
         super().__init__(timeout=60)
         self.prochaine_etape = prochaine_etape
-        self.bot = bot
 
     @discord.ui.button(label="Continuer l'inscription ➡️", style=discord.ButtonStyle.green)
     async def bouton_suivant(self, interaction: discord.Interaction, button: discord.ui.Button):
+        bot = interaction.client # ✨ On récupère le bot directement depuis l'interaction !
         if self.prochaine_etape == 2:
-            await envoyer_log(self.bot, interaction.user, "Clic Transition", "INFO", "Ouverture de la Partie 2 (ModalJeux2)")
-            await interaction.response.send_modal(ModalJeux2(self.bot))
+            await envoyer_log(bot, interaction.user, "Clic Transition", "INFO", "Ouverture de la Partie 2 (ModalJeux2)")
+            await interaction.response.send_modal(ModalJeux2())
         elif self.prochaine_etape == 3:
-            await envoyer_log(self.bot, interaction.user, "Clic Transition", "INFO", "Ouverture de la Partie 3 (ModalProfil)")
-            await interaction.response.send_modal(ModalProfil(self.bot))
+            await envoyer_log(bot, interaction.user, "Clic Transition", "INFO", "Ouverture de la Partie 3 (ModalProfil)")
+            await interaction.response.send_modal(ModalProfil())
 
 # ==========================================
 # 2. LES MODALS INDÉPENDANTS
 # ==========================================
 
 class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
-    def __init__(self, bot):
-        super().__init__()
-        self.bot = bot
-
     pseudo_smite2 = discord.ui.TextInput(label="Pseudo Smite 2", style=discord.TextStyle.short)
     pseudo_legiontd2 = discord.ui.TextInput(label="Pseudo Legion TD 2", style=discord.TextStyle.short)
     pseudo_tetrisio = discord.ui.TextInput(label="Pseudo Tetris.io", style=discord.TextStyle.short)
@@ -131,13 +127,14 @@ class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+        bot = interaction.client
         details = (
             f"Smite 2: {self.pseudo_smite2.value}\n"
             f"Legion TD 2: {self.pseudo_legiontd2.value}\n"
             f"Tetris.io: {self.pseudo_tetrisio.value}\n"
             f"Riot ID: {self.id_riot.value}"
         )
-        await envoyer_log(self.bot, interaction.user, "Soumission Partie 1", "INFO", f"Données reçues, écriture GSheets...\n\n{details}")
+        await envoyer_log(bot, interaction.user, "Soumission Partie 1", "INFO", f"Données reçues, écriture GSheets...\n\n{details}")
         
         try:
             data = {
@@ -148,23 +145,19 @@ class ModalJeux1(discord.ui.Modal, title="Partie 1 : Vos Pseudos"):
             }
             await asyncio.to_thread(update_or_insert_player, interaction.user.id, interaction.user.name, data)
             
-            await envoyer_log(self.bot, interaction.user, "Succès Partie 1", "SUCCES", "Partie 1 correctement injectée dans le GSheets.")
+            await envoyer_log(bot, interaction.user, "Succès Partie 1", "SUCCES", "Partie 1 correctement injectée dans le GSheets.")
             
             await interaction.followup.send(
                 content="✅ **Partie 1 enregistrée !** Clique ci-dessous pour passer à la suite :", 
-                view=ActionEtapeSuivante(prochaine_etape=2, bot=self.bot), 
+                view=ActionEtapeSuivante(prochaine_etape=2), 
                 ephemeral=True
             )
         except Exception as e:
-            await envoyer_log(self.bot, interaction.user, "Erreur Partie 1", "ERREUR", f"Crash écriture GSheets :\n{e}")
+            await envoyer_log(bot, interaction.user, "Erreur Partie 1", "ERREUR", f"Crash écriture GSheets :\n{e}")
             await interaction.followup.send(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
 
 
 class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
-    def __init__(self, bot):
-        super().__init__()
-        self.bot = bot
-
     pseudo_puck = discord.ui.TextInput(label="Pseudo Puck", style=discord.TextStyle.short)
     pseudo_afewquickmatches = discord.ui.TextInput(label="Pseudo A few quick matches", style=discord.TextStyle.short)
     pseudo_ohbabykart = discord.ui.TextInput(label="Pseudo Oh Baby Kart", style=discord.TextStyle.short)
@@ -172,13 +165,14 @@ class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+        bot = interaction.client
         details = (
             f"Puck: {self.pseudo_puck.value}\n"
             f"A few quick matches: {self.pseudo_afewquickmatches.value}\n"
             f"Oh Baby Kart: {self.pseudo_ohbabykart.value}\n"
             f"Brawl Stars: {self.id_brawlstars.value}"
         )
-        await envoyer_log(self.bot, interaction.user, "Soumission Partie 2", "INFO", f"Données reçues, écriture GSheets...\n\n{details}")
+        await envoyer_log(bot, interaction.user, "Soumission Partie 2", "INFO", f"Données reçues, écriture GSheets...\n\n{details}")
         
         try:
             data = {
@@ -189,35 +183,32 @@ class ModalJeux2(discord.ui.Modal, title="Partie 2 : Vos Pseudos"):
             }
             await asyncio.to_thread(update_or_insert_player, interaction.user.id, interaction.user.name, data)
             
-            await envoyer_log(self.bot, interaction.user, "Succès Partie 2", "SUCCES", "Partie 2 correctement mise à jour dans le GSheets.")
+            await envoyer_log(bot, interaction.user, "Succès Partie 2", "SUCCES", "Partie 2 correctement mise à jour dans le GSheets.")
             
             await interaction.followup.send(
                 content="✅ **Partie 2 enregistrée !** Clique ci-dessous pour donner ton profil :", 
-                view=ActionEtapeSuivante(prochaine_etape=3, bot=self.bot), 
+                view=ActionEtapeSuivante(prochaine_etape=3), 
                 ephemeral=True
             )
         except Exception as e:
-            await envoyer_log(self.bot, interaction.user, "Erreur Partie 2", "ERREUR", f"Crash écriture GSheets :\n{e}")
+            await envoyer_log(bot, interaction.user, "Erreur Partie 2", "ERREUR", f"Crash écriture GSheets :\n{e}")
             await interaction.followup.send(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
 
 
 class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
-    def __init__(self, bot):
-        super().__init__()
-        self.bot = bot
-
     meilleurs_jeux = discord.ui.TextInput(label="Ton meilleur jeu", style=discord.TextStyle.short, placeholder="Tetris.io, Smite 2, ...")
     pire_jeux = discord.ui.TextInput(label="Ton pire jeu", style=discord.TextStyle.short, placeholder="Oh Baby Kart, ...")
     remarques = discord.ui.TextInput(label="Remarques", style=discord.TextStyle.long, placeholder="Quelque chose à ajouter ?", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+        bot = interaction.client
         details = (
             f"Meilleur Jeu: {self.meilleurs_jeux.value}\n"
             f"Pire Jeu: {self.pire_jeux.value}\n"
             f"Remarques: {self.remarques.value if self.remarques.value else 'Aucune'}"
         )
-        await envoyer_log(self.bot, interaction.user, "Soumission Partie 3", "INFO", f"Dernières données reçues, écriture GSheets...\n\n{details}")
+        await envoyer_log(bot, interaction.user, "Soumission Partie 3", "INFO", f"Dernières données reçues, écriture GSheets...\n\n{details}")
         
         try:
             data = {
@@ -227,15 +218,14 @@ class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
             }
             await asyncio.to_thread(update_or_insert_player, interaction.user.id, interaction.user.name, data)
             
-            # 🔥 LOG FINAL D'INSCRIPTION COMPLÈTE
-            await envoyer_log(self.bot, interaction.user, "INSCRIPTION TERMINÉE 🏆", "SUCCES", "Le joueur a terminé l'intégralité du processus avec succès !")
+            await envoyer_log(bot, interaction.user, "INSCRIPTION TERMINÉE 🏆", "SUCCES", "Le joueur a terminé l'intégralité du processus avec succès !")
             
             await interaction.followup.send(
                 content=f"🏆 **Inscription validée !**\n\nMerci, toutes tes informations ont été liées à ton compte Discord (**{interaction.user.name}**).",
                 ephemeral=True
             )
         except Exception as e:
-            await envoyer_log(self.bot, interaction.user, "Erreur Partie 3", "ERREUR", f"Crash écriture GSheets :\n{e}")
+            await envoyer_log(bot, interaction.user, "Erreur Partie 3", "ERREUR", f"Crash écriture GSheets :\n{e}")
             await interaction.followup.send(f"❌ Erreur d'écriture Sheets : {e}", ephemeral=True)
 
 # ==========================================
@@ -243,14 +233,14 @@ class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
 # ==========================================
 
 class InscriptionView(discord.ui.View):
-    def __init__(self, bot):
-        super().__init__(timeout=None)
-        self.bot = bot
+    def __init__(self):
+        super().__init__(timeout=None) # 🔥 Crucial : Aucun timeout pour rester persistant h24
 
     @discord.ui.button(label="S'inscrire 🏆", style=discord.ButtonStyle.green, custom_id="btn_inscription_unique")
     async def bouton_inscription(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await envoyer_log(self.bot, interaction.user, "Clic 'S'inscrire'", "INFO", "Lancement du processus. Ouverture de la Partie 1 (ModalJeux1)")
-        await interaction.response.send_modal(ModalJeux1(self.bot))
+        bot = interaction.client
+        await envoyer_log(bot, interaction.user, "Clic 'S'inscrire'", "INFO", "Lancement du processus. Ouverture de la Partie 1 (ModalJeux1)")
+        await interaction.response.send_modal(ModalJeux1())
 
 # ==========================================
 # 4. LE COG PRINCIPAL (COMMANDE SLASH)
@@ -280,4 +270,7 @@ class Inscription(commands.Cog):
             ),
             color=discord.Color.gold()
         )
-        # On passe self.bot à InscriptionView pour qu'elle
+        await interaction.channel.send(embed=embed, view=InscriptionView())
+
+async def setup(bot):
+    await bot.add_cog(Inscription(bot))
