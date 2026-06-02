@@ -37,6 +37,7 @@ bot = Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     try:
+        from inscription import InscriptionView
         bot.add_view(InscriptionView())
         print("🔒 Menu déroulant d'inscription enregistré et 100% persistant !")
     except Exception as e:
