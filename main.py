@@ -4,46 +4,47 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from keep_alive import keep_alive
 
-# 1. IMPORTE TA VUE ICI (Assure-toi que le chemin correspond)
-from cogs.inscription import InscriptionView
-
-# Récupération du token dans un fichier .env
+# Récupération du token
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
 class Bot(commands.Bot):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     async def setup_hook(self):
-        # 1. Chargement des Cogs (vérifie bien le nom de tes fichiers en minuscules)
+        # 1. Enregistrement de la vue persistante ICI (L'endroit officiel et sécurisé)
+        try:
+            from cogs.inscription import InscriptionView
+            self.add_view(InscriptionView())
+            print("🔒 Bouton d'inscription enregistré et persistant !", flush=True)
+        except Exception as e:
+            print(f"❌ Erreur critique enregistrement vue persistante : {e}", flush=True)
+
+        # 2. Chargement des Cogs
         for extension in ['inscription', 'bienvenue']:
             try:
                 await self.load_extension(f'cogs.{extension}')
-                print(f"✅ Cog '{extension}' chargé.")
+                print(f"✅ Cog '{extension}' chargé.", flush=True)
             except Exception as e:
-                print(f"❌ Impossible de charger le cog {extension} : {e}")
-        print("🔒 Bouton d'inscription enregistré et persistant !")
+                print(f"❌ Impossible de charger le cog {extension} : {e}", flush=True)
 
         # 3. La synchro des commandes Slash
-        print("🔄 Synchronisation des commandes slash...")
+        print("🔄 Synchronisation des commandes slash...", flush=True)
         try:
             synced = await self.tree.sync()
-            print(f"✅ {len(synced)} commande(s) synchronisée(s)")
+            print(f"✅ {len(synced)} commande(s) synchronisée(s)", flush=True)
         except Exception as e:
-            print(f"❌ Erreur de synchronisation : {e}")
+            print(f"❌ Erreur de synchronisation : {e}", flush=True)
 
-# Utilisation de Intents.all() -> Parfait puisque tu as tout coché sur le portail dev
+# Configuration du bot avec Intents.all()
 intents = discord.Intents.all()
 bot = Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    try:
-        from inscription import InscriptionView
-        bot.add_view(InscriptionView())
-        print("🔒 Menu déroulant d'inscription enregistré et 100% persistant !")
-    except Exception as e:
-        print(f"❌ Erreur enregistrement vue persistante : {e}")
-
-    print(f"🚀 Connecté et opérationnel en tant que {bot.user}")
+    # Ce print s'affichera instantanément dès que le bot a fini de charger les données Discord
+    print(f"🚀 Connecté et opérationnel en tant que {bot.user}", flush=True)
 
 # Lancement du serveur de maintien en vie et du bot
 keep_alive()
