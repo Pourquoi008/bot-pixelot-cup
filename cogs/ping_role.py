@@ -10,34 +10,35 @@ class PingRole(commands.Cog):
     @app_commands.describe(role="Le rôle que tu souhaites mentionner")
     async def ping_role(self, interaction: discord.Interaction, role: discord.Role):
         
-        # 🏷️ REMPLACE PAR LE NOM EXACT DE TON RÔLE VISITEUR (avec son émoji s'il fait partie du nom)
-        # Exemple : "👀 Visiteur" ou "Visiteur"
-        ID_ROLE_VISITEUR = "1508748306216390716" # Rôle 👕| Visiteurs
+        # 🆔 ID DU RÔLE VISITEUR (Sous forme de NOMBRE, pas de texte)
+        ID_ROLE_VISITEUR = 1508748306216390716  # Rôle 👕| Visiteurs
 
+        # ✅ LISTE DES IDS AUTORISÉS (Uniquement des NOMBRES)
         ROLES_AUTORISES = [
-            "1511991532599775323", # Rôle 🛡️| Legion TD
-            "1511991679379308574", # Rôle 🟪| Tetr.io
-            "1511991827115413604", # Rôle 🏒| Puck
-            "1511991855221571604", # Rôle ⭐| BrawlStars
-            "1511991896828940428", # Rôle 🎯| Valorant
-            "1511991917758386227", # Rôle 🏎️| Oh Baby Kart
-            "1511991987010801705", # Rôle ⚡| Smite 2
-            "1511992152895524864"  # Rôle ⏱️| A few quick match
-
+            1511991532599775323, # Rôle 🛡️| Legion TD
+            1511991679379308574, # Rôle 🟪| Tetr.io
+            1511991827115413604, # Rôle 🏒| Puck
+            1511991855221571604, # Rôle ⭐| BrawlStars
+            1511991896828940428, # Rôle 🎯| Valorant
+            1511991917758386227, # Rôle 🏎️| Oh Baby Kart
+            1511991987010801705, # Rôle ⚡| Smite 2
+            1511992152895524864  # Rôle ⏱️| A few quick match
         ]
-        # 1. On vérifie si l'utilisateur a le rôle requis
+
+        # 1. On vérifie si l'utilisateur a le rôle requis (Vérification par nombre)
         has_role = any(r.id == ID_ROLE_VISITEUR for r in interaction.user.roles)
 
         if not has_role:
             await interaction.response.send_message(
-                f"❌ Désolé, tu dois avoir le rôle `{NOM_ROLE_VISITEUR}` pour utiliser cette commande !", 
+                "❌ Désolé, tu dois avoir le rôle `Visiteurs` pour utiliser cette commande !", 
                 ephemeral=True
             )
             return
-        # --- SÉCURITÉ 2 : Est-ce que l'ID du rôle demandé est dans la Whitelist ? ---
-        if role.id not in ROLES_AUTORISES_IDS:
+
+        # 2. SÉCURITÉ : Est-ce que l'ID du rôle demandé est bien dans la Whitelist ?
+        if role.id not in ROLES_AUTORISES:
             await interaction.response.send_message(
-                f"🛑 **Action refusée :** Le rôle `{role.name}` n'est pas autorisé a être mentionner.", 
+                f"🛑 **Action refusée :** Le rôle `{role.name}` n'est pas autorisé à être mentionné.", 
                 ephemeral=True
             )
             return
@@ -54,7 +55,7 @@ class PingRole(commands.Cog):
             # 5. On envoie le ping dans le salon
             await interaction.channel.send(f"**{role.mention}**")
 
-            # 5. On referme le rôle direct
+            # 6. On referme le rôle direct
             if not deja_mentionnable:
                 await role.edit(mentionable=False, reason="Verrouillage de sécurité après ping")
 
