@@ -22,7 +22,7 @@ class Bot(commands.Bot):
             print(f"❌ Erreur critique enregistrement vue persistante : {e}", flush=True)
 
         # 2. Chargement des Cogs
-        for extension in ['inscription', 'bienvenue']:
+        for extension in ['inscription', 'bienvenue','ping_role']:
             try:
                 await self.load_extension(f'cogs.{extension}')
                 print(f"✅ Cog '{extension}' chargé.", flush=True)
