@@ -12,10 +12,21 @@ class PingRole(commands.Cog):
         
         # 🏷️ REMPLACE PAR LE NOM EXACT DE TON RÔLE VISITEUR (avec son émoji s'il fait partie du nom)
         # Exemple : "👀 Visiteur" ou "Visiteur"
-        NOM_ROLE_VISITEUR = "👕| Visiteurs" 
+        ID_ROLE_VISITEUR = "1508748306216390716" # Rôle 👕| Visiteurs
 
+        ROLES_AUTORISES = [
+            "1511991532599775323", # Rôle 🛡️| Legion TD
+            "1511991679379308574", # Rôle 🟪| Tetr.io
+            "1511991827115413604", # Rôle 🏒| Puck
+            "1511991855221571604", # Rôle ⭐| BrawlStars
+            "1511991896828940428", # Rôle 🎯| Valorant
+            "1511991917758386227", # Rôle 🏎️| Oh Baby Kart
+            "1511991987010801705", # Rôle ⚡| Smite 2
+            "1511992152895524864"  # Rôle ⏱️| A few quick match
+
+        ]
         # 1. On vérifie si l'utilisateur a le rôle requis
-        has_role = any(r.name == NOM_ROLE_VISITEUR for r in interaction.user.roles)
+        has_role = any(r.id == ID_ROLE_VISITEUR for r in interaction.user.roles)
 
         if not has_role:
             await interaction.response.send_message(
@@ -23,17 +34,24 @@ class PingRole(commands.Cog):
                 ephemeral=True
             )
             return
+        # --- SÉCURITÉ 2 : Est-ce que l'ID du rôle demandé est dans la Whitelist ? ---
+        if role.id not in ROLES_AUTORISES_IDS:
+            await interaction.response.send_message(
+                f"🛑 **Action refusée :** Le rôle `{role.name}` n'est pas autorisé a être mentionner.", 
+                ephemeral=True
+            )
+            return
 
-        # 2. Si c'est bon, on lance la procédure de ping
+        # 3. Si c'est bon, on lance la procédure de ping
         await interaction.response.send_message(f"🔄 Préparation de la mention pour {role.name}...", ephemeral=True)
 
         try:
-            # 3. On ouvre temporairement le rôle s'il est verrouillé
+            # 4. On ouvre temporairement le rôle s'il est verrouillé
             deja_mentionnable = role.mentionable
             if not deja_mentionnable:
                 await role.edit(mentionable=True, reason="Ping sécurisé via commande bot")
 
-            # 4. On envoie le ping dans le salon
+            # 5. On envoie le ping dans le salon
             await interaction.channel.send(f"**{role.mention}**")
 
             # 5. On referme le rôle direct
