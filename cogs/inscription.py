@@ -220,7 +220,7 @@ class ModalProfil(discord.ui.Modal, title="Partie 3 : Votre Profil"):
             
             await envoyer_log(bot, interaction.user, "INSCRIPTION TERMINÉE 🏆", "SUCCES", "Le joueur a terminé l'intégralité du processus avec succès !")
             
-            await interaction.user.add_roles(discord.Object(id=1510307482822639877), reason="Inscription complète") # Ajout du rôle 🏅| Inscrit
+            await interaction.user.add_roles(discord.utils.get(interaction.guild.roles, id=1510307482822639877), reason="Inscription complète") # Ajout du rôle 🏅| Inscrit
 
             await interaction.followup.send(
                 content=f"🏆 **Inscription validée !**\n\nMerci, toutes tes informations ont été liées à ton compte Discord (**{interaction.user.name}**).",
