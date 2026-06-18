@@ -26,6 +26,9 @@ class Teams(commands.Cog):
             liste_joueurs.append(joueur1)
         if joueur2 is not None:
             liste_joueurs.append(joueur2)
+
+        await interaction.response.defer(ephemeral=True)
+
         if len(liste_joueurs) > 0:
             for joueur in liste_joueurs:
                 for roles_joueur in joueur.roles:
@@ -34,6 +37,8 @@ class Teams(commands.Cog):
 
         for joueur in liste_joueurs:
             await joueur.add_roles(role)
+        
+        await interaction.followup.send(f"✅ L'équipe {role.name} a bien été attribuée !", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Teams(bot))
