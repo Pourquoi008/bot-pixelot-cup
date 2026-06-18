@@ -18,7 +18,20 @@ class Teams(commands.Cog):
         joueur2="Le deuxième joueur (optionnel)"
     )
 
-    
+    @app_commands.choices(equipe=[
+        app_commands.Choice(name="Team A", value="1517086623160864868"),
+        app_commands.Choice(name="Team B", value="1517086669092950126"),
+        app_commands.Choice(name="Team C", value="1517086682053214269"),
+        app_commands.Choice(name="Team D", value="1517086700122406932"),
+        app_commands.Choice(name="Team E", value="1517086712331763802"),
+        app_commands.Choice(name="Team F", value="1517086724004647056"),
+        app_commands.Choice(name="Team G", value="1517086724004647056"),
+        app_commands.Choice(name="Team H", value="1517086736428171274"),
+        app_commands.Choice(name="Team I", value="1517086749342433280"),
+        app_commands.Choice(name="Team J", value="1517086763070521454"),
+        app_commands.Choice(name="Team K", value="1517086842418237570"),
+        app_commands.Choice(name="Team L", value="1517086856259571822"),
+    ])
 
     async def set_team(self, interaction: discord.Interaction, role: discord.Role, joueur1: discord.Member, joueur2: discord.Member = None):
         liste_joueurs = []
