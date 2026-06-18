@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 
 class Teams(commands.Cog):
     def __init__(self, bot):
@@ -26,7 +27,7 @@ class Teams(commands.Cog):
             for joueur in liste_joueurs:
                 for roles_joueur in joueur.roles:
                     if roles_joueur.id in self.team_roles:
-                        await joueur.remove_roles(role_joueur)
+                        await joueur.remove_roles(roles_joueur)
 
         for joueur in liste_joueurs:
             await joueur.add_roles(role)
