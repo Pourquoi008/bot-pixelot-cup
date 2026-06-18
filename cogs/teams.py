@@ -13,7 +13,7 @@ class Teams(commands.Cog):
     
     @app_commands.command(name="set_team", description="Attribue une équipe à des joueurs")
     @app_commands.describe(
-        role="Le rôle de l'équipe à donner",
+        equipe="Le rôle de l'équipe à donner",
         joueur1="Le premier joueur",
         joueur2="Le deuxième joueur (optionnel)"
     )
@@ -33,7 +33,7 @@ class Teams(commands.Cog):
         app_commands.Choice(name="Team L", value="1517086856259571822"),
     ])
 
-    async def set_team(self, interaction: discord.Interaction, role: discord.Role, joueur1: discord.Member, joueur2: discord.Member = None):
+    async def set_team(self, interaction: discord.Interaction, equipe: app_commands.Choice[str], joueur1: discord.Member, joueur2: discord.Member = None):
         liste_joueurs = []
         if joueur1 is not None:
             liste_joueurs.append(joueur1)
@@ -48,6 +48,8 @@ class Teams(commands.Cog):
                     if roles_joueur.id in self.team_roles:
                         await joueur.remove_roles(roles_joueur)
 
+        id_role = int(equipe.value)
+        role = interaction.guild.get_role(id_role)
         for joueur in liste_joueurs:
             await joueur.add_roles(role)
         
