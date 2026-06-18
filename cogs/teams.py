@@ -118,7 +118,7 @@ class Teams(commands.Cog):
         if equipe_loser:
             msg = f"💀 {membres_str} ont été envoyés en **Loser Bracket** dans la **{equipe_loser.name}** !"
         else:
-            msg = f"💀 {membres_str} ont été envoyés en **Loser Bracket** (Solo) !"
+            msg = f"💀 {membres_str} a été envoyés en **Loser Bracket** (Solo) !"
             
         await interaction.followup.send(msg, ephemeral=True)
 
