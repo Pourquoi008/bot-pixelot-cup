@@ -11,6 +11,7 @@ class Teams(commands.Cog):
                 1517086842418237570,1517086856259571822
             ]
     
+    ## == /set_team == ##
     @app_commands.command(name="set_team", description="Attribue une équipe à des joueurs")
     @app_commands.describe(
         equipe="Le rôle de l'équipe à donner",
@@ -54,30 +55,40 @@ class Teams(commands.Cog):
             await joueur.add_roles(role)
         
         await interaction.followup.send(f"✅ L'équipe {role.name} a bien été attribuée !", ephemeral=True)
-
+    ## == /loose == ##
     @app_commands.command(name="loose", description="Envoie des joueurs en Loser Bracket (avec ou sans équipe)")
     @app_commands.describe(
-        role_team_loser="Le rôle d'équipe de Loser à leur attribuer (Optionnel pour la Phase 1)",
+        equipe_loser="L'équipe de rechange (Optionnel - Uniquement pour les phases en équipe)",
         j1="Premier joueur",
         j2="Deuxième joueur (optionnel)",
         j3="Troisième joueur (optionnel)",
         j4="Quatrième joueur (optionnel)"
     )
+    # 🪄 On limite le choix strictement aux équipes 1, 2, 3, 4, 5, 6 du Loser Bracket
+    # Remplace les IDs ci-dessous par les vrais IDs de tes rôles Team Loser
+    @app_commands.choices(equipe_loser=[
+        app_commands.Choice(name="Team Loser 1", value="1517181231123398906"),
+        app_commands.Choice(name="Team Loser 2", value="1517181255337382200"),
+        app_commands.Choice(name="Team Loser 3", value="1517181278372237503"),
+        app_commands.Choice(name="Team Loser 4", value="1517182710752477327"),
+        app_commands.Choice(name="Team Loser 5", value="1517182733665698023"),
+        app_commands.Choice(name="Team Loser 6", value="1517181295191392407"),
+    ])
     @app_commands.default_permissions(administrator=True)
     async def loose(
         self, 
         interaction: discord.Interaction, 
         j1: discord.Member, 
-        role_team_loser: discord.Role = None,  # <-- Mis en optionnel ici et placé après j1
+        equipe_loser: app_commands.Choice[str] = None,  # <-- Devient un choix optionnel
         j2: discord.Member = None, 
         j3: discord.Member = None, 
         j4: discord.Member = None
     ):
         await interaction.response.defer(ephemeral=True)
         
-        # Récupération des rôles généraux (remplace par tes vrais IDs)
-        role_winner = interaction.guild.get_role(123456789012345678)
-        role_loser = interaction.guild.get_role(987654321098765432)
+        # Récupération des rôles généraux (Pense à mettre tes vrais IDs ici)
+        role_winner = interaction.guild.get_role(1517072565158285443)
+        role_loser = interaction.guild.get_role(1517177004976504842)
         
         liste_joueurs = [j for j in [j1, j2, j3, j4] if j is not None]
         pseudos_modifies = []
@@ -91,19 +102,23 @@ class Teams(commands.Cog):
             if role_loser not in joueur.roles:
                 await joueur.add_roles(role_loser)
                 
-            # 3. On ajoute le rôle d'équipe UNIQUEMENT s'il a été renseigné
-            if role_team_loser is not None and role_team_loser not in joueur.roles:
-                await joueur.add_roles(role_team_loser)
+            # 3. Si une équipe a été sélectionnée, on va chercher le vrai rôle sur Discord pour l'ajouter
+            if equipe_loser is not None:
+                id_role = int(equipe_loser.value)
+                vrai_role_team = interaction.guild.get_role(id_role)
+                
+                if vrai_role_team and vrai_role_team not in joueur.roles:
+                    await joueur.add_roles(vrai_role_team)
                 
             pseudos_modifies.append(joueur.display_name)
             
         membres_str = ", ".join(pseudos_modifies)
         
-        # Message de fin dynamique selon si on a mis une équipe ou pas
-        if role_team_loser:
-            msg = f"💀 {membres_str} ont été envoyés en **Loser Bracket** dans l'équipe **{role_team_loser.name}** !"
+        # Message de fin adapté
+        if equipe_loser:
+            msg = f"💀 {membres_str} ont été envoyés en **Loser Bracket** dans la **{equipe_loser.name}** !"
         else:
-            msg = f"💀 {membres_str} ont été envoyés en **Loser Bracket** (Mode Solo) !"
+            msg = f"💀 {membres_str} ont été envoyés en **Loser Bracket** (Solo) !"
             
         await interaction.followup.send(msg, ephemeral=True)
 
