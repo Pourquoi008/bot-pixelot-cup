@@ -17,7 +17,7 @@ class Teams(commands.Cog):
         joueur1="Le premier joueur",
         joueur2="Le deuxième joueur (optionnel)"
     )
-
+    @app_commands.default_permissions(administrator=True)
     @app_commands.choices(equipe=[
         app_commands.Choice(name="Team A", value="1517086623160864868"),
         app_commands.Choice(name="Team B", value="1517086669092950126"),
