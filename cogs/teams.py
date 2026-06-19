@@ -49,12 +49,23 @@ class Teams(commands.Cog):
                     if roles_joueur.id in self.team_roles:
                         await joueur.remove_roles(roles_joueur)
 
+        # ... (début de ton code inchangé avec le nettoyage des anciennes teams)
+
         id_role = int(equipe.value)
         role = interaction.guild.get_role(id_role)
-        for joueur in liste_joueurs:
-            await joueur.add_roles(role)
+        winner_bracket_role = interaction.guild.get_role(1517072565158285443)  # ID du rôle Winner Bracket
         
-        await interaction.followup.send(f"✅ L'équipe {role.name} a bien été attribuée !", ephemeral=True)
+        for joueur in liste_joueurs:
+            if role and role not in joueur.roles:
+                await joueur.add_roles(role)
+                
+            if winner_bracket_role and winner_bracket_role not in joueur.roles: # On vérifie si le joueur n'a pas déjà le rôle Winner Bracket
+                await joueur.add_roles(winner_bracket_role)
+        
+        await interaction.followup.send(
+            f"✅ L'équipe **{role.name}** ainsi que le rôle **Winner Bracket** ont bien été attribués !", 
+            ephemeral=True
+        )
     ## == /loose == ##
     @app_commands.command(name="loose", description="Envoie des joueurs en Loser Bracket (avec ou sans équipe)")
     @app_commands.describe(
